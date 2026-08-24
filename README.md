@@ -13,21 +13,38 @@ This skill reads configured Google Sheets and optional Notion health-check data,
 
 Source Google Sheets and Notion health-check records are read-only.
 
-## Install
+## Install With Codex
+
+Recommended flow: ask Codex to install the skill instead of typing the installer command yourself.
+
+Paste this into a Codex chat:
+
+```text
+아래 GitHub 스킬을 설치하고, 설치가 끝나면 다음 턴에서 설정을 진행하라고 안내해줘.
+https://github.com/agrade1/oz-weekly-report-skill
+```
+
+After Codex says the skill is installed, start setup in the Codex chat:
+
+```text
+$oz-weekly-report 설정해줘
+```
+
+Do not type `$oz-weekly-report 설정해줘` in a terminal. It is a Codex chat prompt, not a shell command.
+
+## Manual Install
 
 If this repository root is the skill folder:
 
 ```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo OWNER/oz-weekly-report-skill --path . --name oz-weekly-report --ref main --method download
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo agrade1/oz-weekly-report-skill --path . --name oz-weekly-report --ref main --method download
 ```
 
 If this folder is published under `skills/oz-weekly-report`:
 
 ```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo OWNER/oz-weekly-report-skill --path skills/oz-weekly-report --ref main --method download
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo agrade1/oz-weekly-report-skill --path skills/oz-weekly-report --ref main --method download
 ```
-
-Replace `OWNER/oz-weekly-report-skill` with the actual GitHub repository.
 
 ## First Run Setup
 

@@ -1,3 +1,4 @@
 interface:
   display_name: "Oz Weekly Report"
   short_description: "Create cohort-specific OZ satisfaction reports"
+  default_prompt: "Use $oz-weekly-report to set up my cohort weekly satisfaction report."
