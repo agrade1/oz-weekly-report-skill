@@ -18,7 +18,7 @@ Source Google Sheets and Notion health-check records are read-only.
 If this repository root is the skill folder:
 
 ```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo OWNER/oz-weekly-report-skill --path . --ref main --method download
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo OWNER/oz-weekly-report-skill --path . --name oz-weekly-report --ref main --method download
 ```
 
 If this folder is published under `skills/oz-weekly-report`:
