@@ -36,8 +36,9 @@ def test_creates_template_and_reports_missing_setup(tmp_path: Path) -> None:
     assert profile.exists()
     assert result["status"] == "needs_setup"
     assert result["created_template"] is True
-    assert "satisfaction_dashboard_url" in result["missing_fields"]
-    assert "담당 과정명(예: 1인 창업가)" in result["setup_prompts"]
+    assert result["setup_stage"] == "cohort_selection"
+    assert result["missing_fields"] == ["camp", "cohort"]
+    assert "담당 캠프 선택(예: 창업가 또는 디자이너)" in result["setup_prompts"]
 
 
 def test_derives_profile_defaults(tmp_path: Path) -> None:
@@ -67,8 +68,72 @@ def test_derives_profile_defaults(tmp_path: Path) -> None:
 
     assert result["status"] == "ready"
     assert result["profile"]["cohort_query"] == "6"
-    assert result["profile"]["report_label"] == "1인 창업가 6기"
+    assert result["profile"]["report_label"] == "창업가 6기"
+    assert result["profile"]["roster_cohort_label"] == "창업가 6기"
     assert result["profile"]["sheets"]["dashboard"] == "창업가 대시보드"
+
+
+def test_derives_designer_preset_defaults(tmp_path: Path) -> None:
+    profile = tmp_path / "profile.yaml"
+    profile.write_text(
+        "\n".join(
+            [
+                "version: 3",
+                "camp: 디자이너",
+                "cohort: 3",
+                "satisfaction_dashboard_url: https://docs.google.com/spreadsheets/d/source/edit",
+                "roster_url: https://docs.google.com/spreadsheets/d/roster/edit",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        [sys.executable, str(CHECKER), "--profile", str(profile)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    result = json.loads(completed.stdout)
+
+    assert result["status"] == "ready"
+    assert result["profile"]["cohort"] == "3기"
+    assert result["profile"]["cohort_query"] == "3"
+    assert result["profile"]["report_label"] == "디자이너 3기"
+    assert result["profile"]["roster_cohort_label"] == "디자이너 3기"
+    assert result["profile"]["sheets"]["dashboard"] == "디자이너 대시보드"
+    assert result["profile"]["sheets"]["roster"] == "디자이너_수강생 주요 정보"
+
+
+def test_reports_source_discovery_after_cohort_selection(tmp_path: Path) -> None:
+    profile = tmp_path / "profile.yaml"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(CHECKER),
+            "--profile",
+            str(profile),
+            "--init-missing",
+            "--set",
+            "camp=디자이너",
+            "--set",
+            "cohort=4기",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    result = json.loads(completed.stdout)
+
+    assert result["status"] == "needs_setup"
+    assert result["updated_profile"] is True
+    assert result["setup_stage"] == "source_discovery"
+    assert result["missing_fields"] == ["satisfaction_dashboard_url", "roster_url"]
+    assert result["setup_hints"]["drive_search"]["expected_tabs"]["learning"] == "디자이너 학습"
+    assert result["setup_hints"]["drive_search"]["roster_cohort_label"] == "디자이너 4기"
 
 
 if __name__ == "__main__":

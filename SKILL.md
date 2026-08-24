@@ -5,9 +5,13 @@ description: Create and schedule OZ Coding School bootcamp weekly satisfaction r
 
 # OZ Weekly Satisfaction Report
 
-Prepare a weekly satisfaction report for the configured OZ bootcamp cohort. The cohort, source spreadsheets, tab names, roster label, excluded roster names, Notion output location, and schedule are all user-specific settings stored in a local profile. Keep source Google Sheets and Notion health-check records strictly read-only.
+Prepare a weekly satisfaction report for the configured OZ bootcamp cohort. The cohort, source spreadsheets, tab names, roster label, excluded roster names, Notion output location, and schedule are all user-specific settings stored in a local profile. Setup should start from the user's camp and cohort whenever possible, then derive defaults and discover source files before asking for additional values. Keep source Google Sheets and Notion health-check records strictly read-only.
 
 ## Required Resources
+
+For install follow-up, setup requests, or incomplete profiles, read:
+
+1. `references/setup-wizard.md`
 
 Before reading source data, read:
 
@@ -33,7 +37,7 @@ Pass raw source rows only through standard input. Never save source rows, names,
 
 Use profile `~/.codex/oz-weekly-report/profile.yaml` and state `~/.codex/oz-weekly-report/state.yaml`.
 
-At the start of every run, execute `scripts/check-profile.py --init-missing`. If it returns `needs_setup`, stop before reading Google Sheets or Notion and show a concise setup prompt using `setup_prompts` and the clickable profile path. Ask the user to provide the missing settings in chat or edit the profile. Do not register automation or create a report until the profile is `ready`.
+At the start of every run, execute `scripts/check-profile.py --init-missing`. If it returns `needs_setup`, stop before reading report source rows and follow `references/setup-wizard.md`. Ask only for the current setup stage's missing values. Do not register automation or create a report until the profile is `ready`.
 
 Profile template:
 
@@ -41,15 +45,15 @@ Profile template:
 version: 3
 
 camp:
-# 예: 1인 창업가
+# 예: 창업가 또는 디자이너
 cohort:
 # 예: 5기
 cohort_query:
-# 예: 5
+# 비워두면 cohort의 숫자로 계산
 report_label:
-# 예: 창업가 5기. 비워두면 "<camp> <cohort>"로 계산
+# 비워두면 preset 기준 "<캠프명> <cohort>"로 계산
 roster_cohort_label:
-# 예: 창업가 5기. 마스터시트 A열 및 헬스체크 기수명과 정확히 일치해야 함
+# 비워두면 report_label로 계산. 마스터시트 A열 및 헬스체크 기수명과 정확히 일치해야 함
 roster_excluded_names: []
 # 예: [홍길동, 김오즈]. 원본 시트는 수정하지 않고 내부 재원 기준에서 제외
 
@@ -57,10 +61,14 @@ satisfaction_dashboard_url:
 roster_url:
 
 sheets:
-  dashboard: 창업가 대시보드
-  learning: 창업가 학습
-  operation: 창업가 운영
-  roster: 창업가_수강생 주요 정보
+  dashboard:
+  learning:
+  operation:
+  roster:
+
+source_discovery:
+  satisfaction_dashboard_query: "[교육팀] 만족도 대시보드"
+  roster_query: "마스터시트"
 
 notion_parent_url:
 health_check_page_url:
@@ -73,7 +81,7 @@ schedule_time: "10:30"
 extra_holidays: []
 ```
 
-Required settings are `camp`, `cohort`, `cohort_query`, `report_label`, `roster_cohort_label`, `satisfaction_dashboard_url`, `roster_url`, `sheets.dashboard`, `sheets.learning`, `sheets.operation`, `sheets.roster`, `timezone`, `schedule_mode`, and `schedule_time`. Notion output and health-check settings are optional.
+Required settings are `camp`, `cohort`, `cohort_query`, `report_label`, `roster_cohort_label`, `satisfaction_dashboard_url`, `roster_url`, `sheets.dashboard`, `sheets.learning`, `sheets.operation`, `sheets.roster`, `timezone`, `schedule_mode`, and `schedule_time`. `cohort_query`, `report_label`, `roster_cohort_label`, sheet names, timezone, schedule mode, and schedule time should be derived by `check-profile.py` when a known camp preset is available. Notion output and health-check settings are optional.
 
 ## Source Safety
 

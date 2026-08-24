@@ -1,4 +1,4 @@
 interface:
   display_name: "Oz Weekly Report"
   short_description: "Create cohort-specific OZ satisfaction reports"
-  default_prompt: "Use $oz-weekly-report to set up my cohort weekly satisfaction report."
+  default_prompt: "$oz-weekly-report 설정해줘. 담당 캠프는 창업가, 기수는 5기야."
