@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Local user configuration/state. These are created on each user's machine.
+profile.yaml
+state.yaml
