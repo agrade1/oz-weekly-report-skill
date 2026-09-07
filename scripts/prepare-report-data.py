@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import sys
 from collections import Counter
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Final
 
@@ -107,6 +107,39 @@ def operation_dashboard_match(rows: tuple[Row, ...], cohort: str, day: date | No
         if normalize_cohort(value(row, 1)) == cohort and dashboard_day(value(row, 2)) == day
     )
     return matches[-1] if matches else None
+
+
+def operation_dashboard_days(rows: tuple[Row, ...], cohort: str, end: datetime) -> tuple[date, ...]:
+    days = tuple(
+        day
+        for row in rows
+        if normalize_cohort(value(row, 1)) == cohort
+        and (day := dashboard_day(value(row, 2))) is not None
+        and day <= end.date()
+    )
+    return tuple(sorted(dict.fromkeys(days)))
+
+
+def start_of_day(day: date, reference: datetime) -> datetime:
+    return datetime.combine(day, time.min, tzinfo=reference.tzinfo)
+
+
+def operation_rows_for_dashboard_period(
+    rows: tuple[Row, ...],
+    survey_day: date | None,
+    next_survey_day: date | None,
+    end: datetime,
+) -> tuple[Row, ...]:
+    if survey_day is None:
+        return ()
+    start = start_of_day(survey_day, end)
+    exclusive_end = start_of_day(next_survey_day, end) if next_survey_day is not None else None
+    return tuple(
+        row
+        for row in rows
+        if start <= submitted_at(value(row, 5)) <= end
+        and (exclusive_end is None or submitted_at(value(row, 5)) < exclusive_end)
+    )
 
 
 def learning_dashboard_match(rows: tuple[Row, ...], cohort: str, subject: str, day: date) -> Row | None:
@@ -330,16 +363,21 @@ def in_health_check_context(note: HealthCheckNote, comparison_start: datetime, e
 def build(payload: PrepareInput) -> PreparedReport:
     cohort = normalize_cohort(payload.cohort)
     operation_all = cohort_rows(payload.operation_rows, cohort)
-    previous_rows = deduplicate(
-        tuple(row for row in operation_all if in_window(submitted_at(value(row, 5)), payload.comparison_start, payload.start)),
-        1,
-        5,
+    operation_days = operation_dashboard_days(payload.operation_dashboard_rows, cohort, payload.end)
+    current_operation_day = operation_days[-1] if operation_days else None
+    previous_operation_day = operation_days[-2] if len(operation_days) >= 2 else None
+    previous_source_rows = (
+        operation_rows_for_dashboard_period(operation_all, previous_operation_day, current_operation_day, payload.end)
+        if previous_operation_day is not None
+        else tuple(row for row in operation_all if in_window(submitted_at(value(row, 5)), payload.comparison_start, payload.start))
     )
-    current_rows = deduplicate(
-        tuple(row for row in operation_all if in_window(submitted_at(value(row, 5)), payload.start, payload.end)),
-        1,
-        5,
+    current_source_rows = (
+        operation_rows_for_dashboard_period(operation_all, current_operation_day, None, payload.end)
+        if current_operation_day is not None
+        else tuple(row for row in operation_all if in_window(submitted_at(value(row, 5)), payload.start, payload.end))
     )
+    previous_rows = deduplicate(previous_source_rows, 1, 5)
+    current_rows = deduplicate(current_source_rows, 1, 5)
     previous_operation = operation_period(previous_rows, payload.operation_dashboard_rows, cohort)
     current_operation = operation_period(current_rows, payload.operation_dashboard_rows, cohort)
     general = operation_voc(current_rows)

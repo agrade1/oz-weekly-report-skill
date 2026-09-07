@@ -50,7 +50,8 @@ Do not write, move, update, archive, or comment on health-check records.
 
 ## Deduplication and metrics
 
-- Operation key: cohort + normalized respondent name within one report window. Keep the latest F timestamp.
+- Operation key: cohort + normalized respondent name within one operation dashboard survey period. Use the latest dashboard survey date on or before the report cutoff as the current survey. Include raw operation responses from that date 00:00 through the report cutoff, and keep the latest F timestamp per respondent.
+- Previous operation metrics use the immediately preceding dashboard survey date and include raw operation responses from that date 00:00 until before the current survey date 00:00.
 - Learning key: cohort + exact subject + normalized respondent name. Keep the latest L timestamp.
 - Operation score: arithmetic mean of valid C scores.
 - Content, live, and assignment: arithmetic means of D, E, and G.

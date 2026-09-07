@@ -240,5 +240,60 @@ def test_applies_profile_roster_excluded_names_to_missing_respondents() -> None:
     ]
 
 
+def test_operation_uses_latest_dashboard_survey_date_not_entire_report_window() -> None:
+    payload = {
+        "cohort": "5기",
+        "comparison_start": "2026-08-24T10:00:00+09:00",
+        "start": "2026-08-31T10:30:00+09:00",
+        "end": "2026-09-07T10:00:00+09:00",
+        "operation_rows": [
+            operation_row("지난응답", 5, "지난 조사 의견", None, "2026. 8. 29 오전 9:00:00"),
+            operation_row("민규", 5, "9월 2일 응답", None, "2026. 9. 2 오전 1:03:32"),
+            operation_row("김규환", 5, None, None, "2026. 9. 4 오전 1:12:30"),
+            operation_row("김하영", 5, None, "코칭 받고 싶습니다", "2026. 9. 4 오전 1:35:25"),
+            operation_row("문동율", 4, None, "리뷰 시간이 있으면 좋겠습니다", "2026. 9. 4 오전 8:51:26"),
+            operation_row("정지호", 5, None, "X", "2026. 9. 7 오전 12:42:15"),
+        ],
+        "learning_dashboard_rows": [],
+        "operation_dashboard_rows": [
+            ["8월 5주차", 5, "2026-08-28", 4, 2, None, 5.0],
+            ["9월 1주차", 5, "2026-09-04", 4, 4, None, 4.8],
+        ],
+        "roster_rows": [
+            ["창업가 5기", None, "민규", None, "훈련중"],
+            ["창업가 5기", None, "김규환", None, "훈련중"],
+            ["창업가 5기", None, "김하영", None, "훈련중"],
+            ["창업가 5기", None, "문동율", None, "훈련중"],
+            ["창업가 5기", None, "정지호", None, "훈련중"],
+        ],
+        "roster_cohort_label": "창업가 5기",
+        "learning_rows": [],
+    }
+    completed = subprocess.run(
+        [sys.executable, str(PREPARER)],
+        input=json.dumps(payload, ensure_ascii=False),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    result = json.loads(completed.stdout)
+
+    assert result["operation"]["current"] == {
+        "score": "4.8", "respondent_count": 4, "survey_date": "2026-09-04",
+        "current_count": 4, "dashboard_response_count": 4,
+    }
+    assert result["operation"]["previous"] == {
+        "score": "5.0", "respondent_count": 2, "survey_date": "2026-08-29",
+        "current_count": None, "dashboard_response_count": None,
+    }
+    assert result["missing_responses"] == [{"survey": "운영 만족도", "subject": None, "names": ["민규"]}]
+    assert [item["original"] for item in result["operation"]["general_voc"]] == [
+        "코칭 받고 싶습니다",
+        "리뷰 시간이 있으면 좋겠습니다",
+    ]
+    assert "9월 2일 응답" not in completed.stdout
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
