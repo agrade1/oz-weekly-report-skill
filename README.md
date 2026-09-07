@@ -46,7 +46,7 @@ Codex가 연결된 Google Drive에서 기본 만족도 대시보드와 마스터
 **[기대효과]**
 
 - 주간 만족도 지표, 전체 유효 VOC, 저점자 특이사항, 미응답 수강생 리스트를 자동으로 정리합니다.
-- 매주 월요일 10시 30분 기준 자동 실행되도록 설정할 수 있습니다.
+- 매주 월요일 10시 기준 자동 실행되도록 설정할 수 있습니다.
 - 원본 Google Sheets와 Notion 헬스체크 데이터는 읽기 전용으로만 조회합니다.
 
 ## Install With Codex
@@ -96,7 +96,7 @@ The skill creates or checks:
 ~/.codex/oz-weekly-report/profile.yaml
 ```
 
-If required settings are missing, Codex stops before reading report rows and asks only for the current setup stage's missing values. For known camp presets such as `창업가` and `디자이너`, Codex derives report labels, roster labels, tab names, timezone, and the Monday 10:30 schedule.
+If required settings are missing, Codex stops before reading report rows and asks only for the current setup stage's missing values. For known camp presets such as `창업가` and `디자이너`, Codex derives report labels, roster labels, tab names, timezone, and the Monday 10:00 schedule.
 
 Required settings:
 

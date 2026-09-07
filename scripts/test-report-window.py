@@ -50,13 +50,13 @@ def test_same_cutoff_replays_the_completed_week_instead_of_empty_window() -> Non
     result = run_window(
         {
             "run_at": "2026-08-12T15:00:00+09:00",
-            "last_successful_report_at": "2026-08-10T10:30:00+09:00",
+            "last_successful_report_at": "2026-08-10T10:00:00+09:00",
             "timezone": "Asia/Seoul",
         }
     )
 
-    assert result.start.isoformat() == "2026-08-03T10:30:00+09:00"
-    assert result.end.isoformat() == "2026-08-10T10:30:00+09:00"
+    assert result.start.isoformat() == "2026-08-03T10:00:00+09:00"
+    assert result.end.isoformat() == "2026-08-10T10:00:00+09:00"
     assert result.replay is True
 
 
@@ -69,16 +69,16 @@ def test_first_run_uses_the_latest_completed_week() -> None:
         }
     )
 
-    assert result.comparison_start.isoformat() == "2026-07-27T10:30:00+09:00"
-    assert result.start.isoformat() == "2026-08-03T10:30:00+09:00"
-    assert result.end.isoformat() == "2026-08-10T10:30:00+09:00"
+    assert result.comparison_start.isoformat() == "2026-07-27T10:00:00+09:00"
+    assert result.start.isoformat() == "2026-08-03T10:00:00+09:00"
+    assert result.end.isoformat() == "2026-08-10T10:00:00+09:00"
     assert result.replay is False
 
 
 def test_monday_holiday_runs_on_tuesday_only() -> None:
     monday = run_window(
         {
-            "run_at": "2026-03-02T10:30:00+09:00",
+            "run_at": "2026-03-02T10:00:00+09:00",
             "last_successful_report_at": None,
             "timezone": "Asia/Seoul",
             "scheduled_run": True,
@@ -86,7 +86,7 @@ def test_monday_holiday_runs_on_tuesday_only() -> None:
     )
     tuesday = run_window(
         {
-            "run_at": "2026-03-03T10:30:00+09:00",
+            "run_at": "2026-03-03T10:00:00+09:00",
             "last_successful_report_at": None,
             "timezone": "Asia/Seoul",
             "scheduled_run": True,
@@ -96,7 +96,23 @@ def test_monday_holiday_runs_on_tuesday_only() -> None:
     assert monday.first_business_day.isoformat() == "2026-03-03"
     assert monday.should_run is False
     assert tuesday.should_run is True
-    assert tuesday.end.isoformat() == "2026-03-03T10:30:00+09:00"
+    assert tuesday.end.isoformat() == "2026-03-03T10:00:00+09:00"
+
+
+def test_schedule_time_controls_the_current_cutoff() -> None:
+    result = run_window(
+        {
+            "run_at": "2026-09-07T10:00:00+09:00",
+            "last_successful_report_at": "2026-08-31T10:30:00+09:00",
+            "timezone": "Asia/Seoul",
+            "schedule_time": "10:00",
+            "scheduled_run": False,
+        }
+    )
+
+    assert result.start.isoformat() == "2026-08-31T10:30:00+09:00"
+    assert result.end.isoformat() == "2026-09-07T10:00:00+09:00"
+    assert result.replay is False
 
 
 if __name__ == "__main__":

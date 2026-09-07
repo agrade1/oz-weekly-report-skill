@@ -24,6 +24,7 @@ class WindowInput(BaseModel):
     last_successful_report_at: datetime | None
     timezone: str
     scheduled_run: bool = False
+    schedule_time: str = "10:00"
     extra_holidays: tuple[date, ...] = Field(default_factory=tuple)
 
 
@@ -54,36 +55,59 @@ def first_business_day(monday: date, holiday_dates: set[date]) -> date:
     raise ValueError("business day not found")
 
 
-def cutoff_for_week(monday: date, timezone: ZoneInfo, holiday_dates: set[date]) -> datetime:
+def parse_schedule_time(value: str) -> time:
+    try:
+        hour_text, minute_text = value.split(":", maxsplit=1)
+        return time(int(hour_text), int(minute_text))
+    except ValueError as exc:
+        raise ValueError("schedule_time must use HH:MM format") from exc
+
+
+def cutoff_for_week(
+    monday: date,
+    timezone: ZoneInfo,
+    holiday_dates: set[date],
+    cutoff_time: time,
+) -> datetime:
     business_day = first_business_day(monday, holiday_dates)
-    return datetime.combine(business_day, time(10, 30), tzinfo=timezone)
+    return datetime.combine(business_day, cutoff_time, tzinfo=timezone)
 
 
-def previous_cutoff(cutoff: datetime, timezone: ZoneInfo, holiday_dates: set[date]) -> datetime:
+def previous_cutoff(
+    cutoff: datetime,
+    timezone: ZoneInfo,
+    holiday_dates: set[date],
+    cutoff_time: time,
+) -> datetime:
     previous_monday = monday_of(cutoff.astimezone(timezone).date()) - timedelta(days=7)
-    return cutoff_for_week(previous_monday, timezone, holiday_dates)
+    return cutoff_for_week(previous_monday, timezone, holiday_dates, cutoff_time)
 
 
 def calculate_window(payload: WindowInput) -> WindowResult:
     timezone = ZoneInfo(payload.timezone)
     local_run_at = payload.run_at.astimezone(timezone)
+    cutoff_time = parse_schedule_time(payload.schedule_time)
     years = {local_run_at.year - 1, local_run_at.year, local_run_at.year + 1}
     holiday_dates = korean_holidays(years, payload.extra_holidays)
     current_monday = monday_of(local_run_at.date())
     current_first_day = first_business_day(current_monday, holiday_dates)
-    current_cutoff = cutoff_for_week(current_monday, timezone, holiday_dates)
-    end = previous_cutoff(current_cutoff, timezone, holiday_dates) if current_cutoff > local_run_at else current_cutoff
+    current_cutoff = cutoff_for_week(current_monday, timezone, holiday_dates, cutoff_time)
+    end = (
+        previous_cutoff(current_cutoff, timezone, holiday_dates, cutoff_time)
+        if current_cutoff > local_run_at
+        else current_cutoff
+    )
     saved = payload.last_successful_report_at
     replay = saved is not None and saved.astimezone(timezone) >= end
     if saved is None or replay:
-        start = previous_cutoff(end, timezone, holiday_dates)
+        start = previous_cutoff(end, timezone, holiday_dates, cutoff_time)
     else:
         start = saved.astimezone(timezone)
     should_run = not payload.scheduled_run or (
         local_run_at.date() == current_first_day and local_run_at >= current_cutoff
     )
     return WindowResult(
-        comparison_start=previous_cutoff(start, timezone, holiday_dates),
+        comparison_start=previous_cutoff(start, timezone, holiday_dates, cutoff_time),
         start=start,
         end=end,
         replay=replay,

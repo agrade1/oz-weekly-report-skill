@@ -77,7 +77,7 @@ health_check_data_source_url:
 timezone: Asia/Seoul
 schedule_mode: weekly_monday
 # weekly_monday 또는 first_business_day
-schedule_time: "10:30"
+schedule_time: "10:00"
 extra_holidays: []
 ```
 

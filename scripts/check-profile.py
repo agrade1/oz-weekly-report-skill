@@ -84,7 +84,7 @@ health_check_data_source_url:
 timezone: Asia/Seoul
 schedule_mode: weekly_monday
 # weekly_monday 또는 first_business_day
-schedule_time: "10:30"
+schedule_time: "10:00"
 extra_holidays: []
 """
 
@@ -157,7 +157,7 @@ def normalized_profile(profile: dict[str, Any]) -> dict[str, Any]:
     output["source_discovery"] = {**DEFAULT_SOURCE_DISCOVERY, **{key: value for key, value in discovery.items() if compact(value)}}
     output.setdefault("timezone", "Asia/Seoul")
     output.setdefault("schedule_mode", "weekly_monday")
-    output.setdefault("schedule_time", "10:30")
+    output.setdefault("schedule_time", "10:00")
     output.setdefault("extra_holidays", [])
     return output
 
@@ -205,7 +205,7 @@ def setup_prompts(fields: list[str]) -> list[str]:
         "roster_url": "Google Drive에서 마스터시트 후보를 찾거나, 찾지 못하면 해당 Sheets URL",
         "timezone": "시간대(기본 Asia/Seoul)",
         "schedule_mode": "자동화 방식(weekly_monday 또는 first_business_day)",
-        "schedule_time": "자동 실행 시각(HH:MM, 기본 10:30)",
+        "schedule_time": "자동 실행 시각(HH:MM, 기본 10:00)",
         "sheets.dashboard": "만족도 대시보드 탭명",
         "sheets.learning": "학습 응답 원본 탭명",
         "sheets.operation": "운영 응답 원본 탭명",

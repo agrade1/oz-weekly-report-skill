@@ -75,6 +75,6 @@ After every setup change, rerun:
 python3 ABSOLUTE_SKILL_PATH/scripts/check-profile.py --init-missing
 ```
 
-When it returns `ready`, summarize the resolved camp, cohort, sheet tabs, source file names/URLs, Notion output status, and Monday 10:30 Asia/Seoul schedule. Then run one manual report before registering the recurring automation.
+When it returns `ready`, summarize the resolved camp, cohort, sheet tabs, source file names/URLs, Notion output status, and Monday 10:00 Asia/Seoul schedule. Then run one manual report before registering the recurring automation.
 
 Only after a manual report succeeds, create or update one recurring Codex automation named `{report_label} 만족도 주간보고`. Reuse an existing automation with the same name.
